@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	ErrFeeTooHigh               = errors.New("Fee too high")
-	ErrInvalidSqrtRatioX96      = errors.New("Invalid sqrtRatioX96")
-	ErrTokenNotInvolved         = errors.New("Token not involved in pool")
+	ErrFeeTooHigh               = errors.New("fee too high")
+	ErrInvalidSqrtRatioX96      = errors.New("invalid sqrtRatioX96")
+	ErrTokenNotInvolved         = errors.New("token not involved in pool")
 	ErrSqrtPriceLimitX96TooLow  = errors.New("SqrtPriceLimitX96 too low")
 	ErrSqrtPriceLimitX96TooHigh = errors.New("SqrtPriceLimitX96 too high")
 )
@@ -37,9 +37,6 @@ type Pool struct {
 	Liquidity        *big.Int
 	TickCurrent      int
 	TickDataProvider TickDataProvider
-
-	token0Price *entities.Price
-	token1Price *entities.Price
 }
 
 func GetAddress(tokenA, tokenB *entities.Token, fee constants.FeeAmount, initCodeHashManualOverride string) (common.Address, error) {
@@ -102,44 +99,6 @@ func NewPool(tokenA, tokenB *entities.Token, fee constants.FeeAmount, sqrtRatioX
  */
 func (p *Pool) InvolvesToken(token *entities.Token) bool {
 	return p.Token0.Equal(token) || p.Token1.Equal(token)
-}
-
-// Token0Price returns the current mid price of the pool in terms of token0, i.e. the ratio of token1 over token0
-func (p *Pool) Token0Price() *entities.Price {
-	if p.token0Price != nil {
-		return p.token0Price
-	}
-	p.token0Price = entities.NewPrice(p.Token0, p.Token1, constants.Q192, new(big.Int).Mul(p.SqrtRatioX96, p.SqrtRatioX96))
-	return p.token0Price
-}
-
-// Token1Price returns the current mid price of the pool in terms of token1, i.e. the ratio of token0 over token1
-func (p *Pool) Token1Price() *entities.Price {
-	if p.token1Price != nil {
-		return p.token1Price
-	}
-	p.token1Price = entities.NewPrice(p.Token1, p.Token0, new(big.Int).Mul(p.SqrtRatioX96, p.SqrtRatioX96), constants.Q192)
-	return p.token1Price
-}
-
-/**
- * Return the price of the given token in terms of the other token in the pool.
- * @param token The token to return price of
- * @returns The price of the given token, in terms of the other.
- */
-func (p *Pool) PriceOf(token *entities.Token) (*entities.Price, error) {
-	if !p.InvolvesToken(token) {
-		return nil, ErrTokenNotInvolved
-	}
-	if p.Token0.Equal(token) {
-		return p.Token0Price(), nil
-	}
-	return p.Token1Price(), nil
-}
-
-// ChainId returns the chain ID of the tokens in the pool.
-func (p *Pool) ChainID() uint {
-	return p.Token0.ChainId()
 }
 
 /**

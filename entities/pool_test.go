@@ -64,47 +64,6 @@ func TestToken1(t *testing.T) {
 	assert.Equal(t, pool.Token1, USDC, "always is the token that sorts after")
 }
 
-func TestToken0Price(t *testing.T) {
-	a1 := new(big.Int).Mul(big.NewInt(101), big.NewInt(1e6))
-	a2 := new(big.Int).Mul(big.NewInt(100), big.NewInt(1e18))
-	r, _ := utils.GetTickAtSqrtRatio(utils.EncodeSqrtRatioX96(a1, a2))
-	pool0, _ := NewPool(USDC, DAI, constants.FeeLow, utils.EncodeSqrtRatioX96(a1, a2), big.NewInt(0), r, nil)
-	assert.Equal(t, pool0.Token0Price().ToSignificant(5), "1.01", "returns price of token0 in terms of token1")
-
-	pool1, _ := NewPool(DAI, USDC, constants.FeeLow, utils.EncodeSqrtRatioX96(a1, a2), big.NewInt(0), r, nil)
-	assert.Equal(t, pool1.Token0Price().ToSignificant(5), "1.01", "returns price of token0 in terms of token1")
-}
-
-func TestToken1Price(t *testing.T) {
-	a1 := new(big.Int).Mul(big.NewInt(101), big.NewInt(1e6))
-	a2 := new(big.Int).Mul(big.NewInt(100), big.NewInt(1e18))
-	r, _ := utils.GetTickAtSqrtRatio(utils.EncodeSqrtRatioX96(a1, a2))
-	pool0, _ := NewPool(USDC, DAI, constants.FeeLow, utils.EncodeSqrtRatioX96(a1, a2), big.NewInt(0), r, nil)
-	assert.Equal(t, pool0.Token1Price().ToSignificant(5), "0.9901", "returns price of token1 in terms of token0")
-
-	pool1, _ := NewPool(DAI, USDC, constants.FeeLow, utils.EncodeSqrtRatioX96(a1, a2), big.NewInt(0), r, nil)
-	assert.Equal(t, pool1.Token1Price().ToSignificant(5), "0.9901", "returns price of token1 in terms of token0")
-}
-
-func TestPriceOf(t *testing.T) {
-	pool, _ := NewPool(USDC, DAI, constants.FeeLow, utils.EncodeSqrtRatioX96(constants.One, constants.One), big.NewInt(0), 0, nil)
-	price0, _ := pool.PriceOf(DAI)
-	assert.Equal(t, price0, pool.Token0Price(), "returns price of token in terms of other token")
-	price1, _ := pool.PriceOf(USDC)
-	assert.Equal(t, price1, pool.Token1Price(), "returns price of token in terms of other token")
-
-	_, err := pool.PriceOf(entities.WETH9[1])
-	assert.Error(t, err, "invalid token")
-}
-
-func TestChainID(t *testing.T) {
-	pool0, _ := NewPool(USDC, DAI, constants.FeeLow, utils.EncodeSqrtRatioX96(constants.One, constants.One), big.NewInt(0), 0, nil)
-	assert.Equal(t, pool0.ChainID(), uint(1), "returns the token0 chainId")
-
-	pool1, _ := NewPool(DAI, USDC, constants.FeeLow, utils.EncodeSqrtRatioX96(constants.One, constants.One), big.NewInt(0), 0, nil)
-	assert.Equal(t, pool1.ChainID(), uint(1), "returns the token0 chainId")
-}
-
 func TestInvolvesToken(t *testing.T) {
 	pool, _ := NewPool(USDC, DAI, constants.FeeLow, utils.EncodeSqrtRatioX96(constants.One, constants.One), big.NewInt(0), 0, nil)
 	assert.True(t, pool.InvolvesToken(USDC), "involves USDC")
