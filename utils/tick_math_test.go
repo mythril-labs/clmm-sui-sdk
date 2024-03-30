@@ -19,16 +19,18 @@ func TestGetSqrtRatioAtTick(t *testing.T) {
 	assert.Equal(t, rmax, MinSqrtRatio, "returns the correct value for min tick")
 
 	r0, _ := GetSqrtRatioAtTick(0)
-	assert.Equal(t, r0, new(big.Int).Lsh(constants.One, 96), "returns the correct value for tick 0")
+	assert.Equal(t, r0, new(big.Int).Lsh(constants.One, 64), "returns the correct value for tick 0")
 
 	rmin, _ := GetSqrtRatioAtTick(MaxTick)
 	assert.Equal(t, rmin, MaxSqrtRatio, "returns the correct value for max tick")
 }
 
 func TestGetTickAtSqrtRatio(t *testing.T) {
-	tmin, _ := GetTickAtSqrtRatio(MinSqrtRatio)
+	tmin, err := GetTickAtSqrtRatio(MinSqrtRatio)
+	assert.NoError(t, err)
 	assert.Equal(t, tmin, MinTick, "returns the correct value for sqrt ratio at min tick")
 
-	tmax, _ := GetTickAtSqrtRatio(new(big.Int).Sub(MaxSqrtRatio, constants.One))
+	tmax, err := GetTickAtSqrtRatio(new(big.Int).Sub(MaxSqrtRatio, constants.One))
+	assert.NoError(t, err)
 	assert.Equal(t, tmax, MaxTick-1, "returns the correct value for sqrt ratio at max tick")
 }

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/daoleno/uniswap-sdk-core/entities"
 	"github.com/daoleno/uniswapv3-sdk/constants"
 )
 
@@ -19,8 +18,6 @@ var (
 	MinSqrtRatio = big.NewInt(4295048016)
 	// The sqrt ratio corresponding to the maximum tick that could be used on any pool.
 	MaxSqrtRatio, _ = new(big.Int).SetString("79226673515401279992447579055", 10)
-
-	Mask256 = new(big.Int).Sub(entities.MaxUint256, constants.One)
 )
 
 var (
@@ -135,7 +132,6 @@ func getSqrtRatioAtTickPositive(tick int) (*big.Int, error) {
 	}
 
 	ratio.Rsh(ratio, 32)
-	ratio.And(ratio, Mask256)
 
 	return ratio, nil
 }
@@ -231,9 +227,9 @@ func getSqrtRatioAtTickNegative(tick int) (*big.Int, error) {
 }
 
 var (
-	magicSqrt10001, _ = new(big.Int).SetString("255738958999603826347141", 10)
-	magicTickLow, _   = new(big.Int).SetString("3402992956809132418596140100660247210", 10)
-	magicTickHigh, _  = new(big.Int).SetString("291339464771989622907027621153398088495", 10)
+	magicSqrt10001, _ = new(big.Int).SetString("59543866431248", 10)
+	magicTickLow, _   = new(big.Int).SetString("184467440737095516", 10)
+	magicTickHigh, _  = new(big.Int).SetString("15793534762490258745", 10)
 )
 
 /**
@@ -245,41 +241,42 @@ func GetTickAtSqrtRatio(sqrtRatioX64 *big.Int) (int, error) {
 	if sqrtRatioX64.Cmp(MinSqrtRatio) < 0 || sqrtRatioX64.Cmp(MaxSqrtRatio) >= 0 {
 		return 0, ErrInvalidSqrtRatio
 	}
-	sqrtRatioX128 := new(big.Int).Lsh(sqrtRatioX64, 32)
-	msb, err := MostSignificantBit(sqrtRatioX128)
-	if err != nil {
-		return 0, err
-	}
+	msb := int64(sqrtRatioX64.BitLen() - 1)
+	log2pIntegerX32 := new(big.Int).Lsh(new(big.Int).Sub(big.NewInt(msb), big.NewInt(64)), 32)
+
 	var r *big.Int
-	if big.NewInt(msb).Cmp(big.NewInt(128)) >= 0 {
-		r = new(big.Int).Rsh(sqrtRatioX128, uint(msb-127))
+	if msb >= 64 {
+		r = new(big.Int).Rsh(sqrtRatioX64, uint(msb-63))
 	} else {
-		r = new(big.Int).Lsh(sqrtRatioX128, uint(127-msb))
+		r = new(big.Int).Lsh(sqrtRatioX64, uint(63-msb))
 	}
 
-	log2 := new(big.Int).Lsh(new(big.Int).Sub(big.NewInt(msb), big.NewInt(128)), 64)
-
-	for i := 0; i < 14; i++ {
-		r = new(big.Int).Rsh(new(big.Int).Mul(r, r), 127)
-		f := new(big.Int).Rsh(r, 128)
-		log2 = new(big.Int).Or(log2, new(big.Int).Lsh(f, uint(63-i)))
-		r = new(big.Int).Rsh(r, uint(f.Int64()))
+	bit, _ := new(big.Int).SetString("8000000000000000", 16)
+	log2pFractionX64 := big.NewInt(0)
+	for i := 0; bit.Cmp(constants.Zero) > 0 && i < 14; i++ {
+		r.Mul(r, r)
+		rMoreThanTwo := new(big.Int).Rsh(r, 127)
+		r.Rsh(r, uint(63+rMoreThanTwo.Int64()))
+		log2pFractionX64.Add(log2pFractionX64, new(big.Int).Mul(bit, rMoreThanTwo))
+		bit.Rsh(bit, 1)
 	}
 
-	logSqrt10001 := new(big.Int).Mul(log2, magicSqrt10001)
+	log2pFractionX32 := new(big.Int).Rsh(log2pFractionX64, 32)
+	log2pX32 := new(big.Int).Add(log2pIntegerX32, log2pFractionX32)
+	logbpX64 := new(big.Int).Mul(log2pX32, magicSqrt10001)
 
-	tickLow := new(big.Int).Rsh(new(big.Int).Sub(logSqrt10001, magicTickLow), 128).Int64()
-	tickHigh := new(big.Int).Rsh(new(big.Int).Add(logSqrt10001, magicTickHigh), 128).Int64()
+	tickLow := new(big.Int).Rsh(new(big.Int).Sub(logbpX64, magicTickLow), 64).Int64()
+	tickHigh := new(big.Int).Rsh(new(big.Int).Add(logbpX64, magicTickHigh), 64).Int64()
 
 	if tickLow == tickHigh {
 		return int(tickLow), nil
 	}
 
-	sqrtRatio, err := GetSqrtRatioAtTick(int(tickHigh))
+	derivedTickHighSqrtPriceX64, err := GetSqrtRatioAtTick(int(tickHigh))
 	if err != nil {
 		return 0, err
 	}
-	if sqrtRatio.Cmp(sqrtRatioX64) <= 0 {
+	if derivedTickHighSqrtPriceX64.Cmp(sqrtRatioX64) <= 0 {
 		return int(tickHigh), nil
 	} else {
 		return int(tickLow), nil
