@@ -9,14 +9,18 @@ import (
 )
 
 const (
-	MinTick = -887272  // The minimum tick that can be used on any pool.
+	MinTick = -443636  // The minimum tick that can be used on any pool.
 	MaxTick = -MinTick // The maximum tick that can be used on any pool.
 )
 
 var (
-	Q32             = big.NewInt(1 << 32)
-	MinSqrtRatio    = big.NewInt(4295128739)                                                          // The sqrt ratio corresponding to the minimum tick that could be used on any pool.
-	MaxSqrtRatio, _ = new(big.Int).SetString("1461446703485210103287273052203988822378723970342", 10) // The sqrt ratio corresponding to the maximum tick that could be used on any pool.
+	Q32 = big.NewInt(1 << 32)
+	// The sqrt ratio corresponding to the minimum tick that could be used on any pool.
+	MinSqrtRatio = big.NewInt(4295048016)
+	// The sqrt ratio corresponding to the maximum tick that could be used on any pool.
+	MaxSqrtRatio, _ = new(big.Int).SetString("79226673515401279992447579055", 10)
+
+	Mask256 = new(big.Int).Sub(entities.MaxUint256, constants.One)
 )
 
 var (
@@ -24,120 +28,206 @@ var (
 	ErrInvalidSqrtRatio = errors.New("invalid sqrt ratio")
 )
 
-func mulShift(val *big.Int, mulBy *big.Int) *big.Int {
-
-	return new(big.Int).Rsh(new(big.Int).Mul(val, mulBy), 128)
+func signedShiftRight(val *big.Int, mulBy *big.Int, shiftBy uint) *big.Int {
+	val.Mul(val, mulBy)
+	val.Rsh(val, shiftBy)
+	return val
 }
 
-var (
-	sqrtConst1, _  = new(big.Int).SetString("fffcb933bd6fad37aa2d162d1a594001", 16)
-	sqrtConst2, _  = new(big.Int).SetString("100000000000000000000000000000000", 16)
-	sqrtConst3, _  = new(big.Int).SetString("fff97272373d413259a46990580e213a", 16)
-	sqrtConst4, _  = new(big.Int).SetString("fff2e50f5f656932ef12357cf3c7fdcc", 16)
-	sqrtConst5, _  = new(big.Int).SetString("ffe5caca7e10e4e61c3624eaa0941cd0", 16)
-	sqrtConst6, _  = new(big.Int).SetString("ffcb9843d60f6159c9db58835c926644", 16)
-	sqrtConst7, _  = new(big.Int).SetString("ff973b41fa98c081472e6896dfb254c0", 16)
-	sqrtConst8, _  = new(big.Int).SetString("ff2ea16466c96a3843ec78b326b52861", 16)
-	sqrtConst9, _  = new(big.Int).SetString("fe5dee046a99a2a811c461f1969c3053", 16)
-	sqrtConst10, _ = new(big.Int).SetString("fcbe86c7900a88aedcffc83b479aa3a4", 16)
-	sqrtConst11, _ = new(big.Int).SetString("f987a7253ac413176f2b074cf7815e54", 16)
-	sqrtConst12, _ = new(big.Int).SetString("f3392b0822b70005940c7a398e4b70f3", 16)
-	sqrtConst13, _ = new(big.Int).SetString("e7159475a2c29b7443b29c7fa6e889d9", 16)
-	sqrtConst14, _ = new(big.Int).SetString("d097f3bdfd2022b8845ad8f792aa5825", 16)
-	sqrtConst15, _ = new(big.Int).SetString("a9f746462d870fdf8a65dc1f90e061e5", 16)
-	sqrtConst16, _ = new(big.Int).SetString("70d869a156d2a1b890bb3df62baf32f7", 16)
-	sqrtConst17, _ = new(big.Int).SetString("31be135f97d08fd981231505542fcfa6", 16)
-	sqrtConst18, _ = new(big.Int).SetString("9aa508b5b7a84e1c677de54f3e99bc9", 16)
-	sqrtConst19, _ = new(big.Int).SetString("5d6af8dedb81196699c329225ee604", 16)
-	sqrtConst20, _ = new(big.Int).SetString("2216e584f5fa1ea926041bedfe98", 16)
-	sqrtConst21, _ = new(big.Int).SetString("48a170391f7dc42444e8fa2", 16)
-)
-
 /**
- * Returns the sqrt ratio as a Q64.96 for the given tick. The sqrt ratio is computed as sqrt(1.0001)^tick
+ * Returns the sqrt ratio as a Q64.64 for the given tick. The sqrt ratio is computed as sqrt(1.0001)^tick
  * @param tick the tick for which to compute the sqrt ratio
  */
 func GetSqrtRatioAtTick(tick int) (*big.Int, error) {
 	if tick < MinTick || tick > MaxTick {
 		return nil, ErrInvalidTick
 	}
-	absTick := tick
-	if tick < 0 {
-		absTick = -tick
-	}
-	var ratio *big.Int
-	if absTick&0x1 != 0 {
-		ratio = sqrtConst1
-	} else {
-		ratio = sqrtConst2
-	}
-	if (absTick & 0x2) != 0 {
-		ratio = mulShift(ratio, sqrtConst3)
-	}
-	if (absTick & 0x4) != 0 {
-		ratio = mulShift(ratio, sqrtConst4)
-	}
-	if (absTick & 0x8) != 0 {
-		ratio = mulShift(ratio, sqrtConst5)
-	}
-	if (absTick & 0x10) != 0 {
-		ratio = mulShift(ratio, sqrtConst6)
-	}
-	if (absTick & 0x20) != 0 {
-		ratio = mulShift(ratio, sqrtConst7)
-	}
-	if (absTick & 0x40) != 0 {
-		ratio = mulShift(ratio, sqrtConst8)
-	}
-	if (absTick & 0x80) != 0 {
-		ratio = mulShift(ratio, sqrtConst9)
-	}
-	if (absTick & 0x100) != 0 {
-		ratio = mulShift(ratio, sqrtConst10)
-	}
-	if (absTick & 0x200) != 0 {
-		ratio = mulShift(ratio, sqrtConst11)
-	}
-	if (absTick & 0x400) != 0 {
-		ratio = mulShift(ratio, sqrtConst12)
-	}
-	if (absTick & 0x800) != 0 {
-		ratio = mulShift(ratio, sqrtConst13)
-	}
-	if (absTick & 0x1000) != 0 {
-		ratio = mulShift(ratio, sqrtConst14)
-	}
-	if (absTick & 0x2000) != 0 {
-		ratio = mulShift(ratio, sqrtConst15)
-	}
-	if (absTick & 0x4000) != 0 {
-		ratio = mulShift(ratio, sqrtConst16)
-	}
-	if (absTick & 0x8000) != 0 {
-		ratio = mulShift(ratio, sqrtConst17)
-	}
-	if (absTick & 0x10000) != 0 {
-		ratio = mulShift(ratio, sqrtConst18)
-	}
-	if (absTick & 0x20000) != 0 {
-		ratio = mulShift(ratio, sqrtConst19)
-	}
-	if (absTick & 0x40000) != 0 {
-		ratio = mulShift(ratio, sqrtConst20)
-	}
-	if (absTick & 0x80000) != 0 {
-		ratio = mulShift(ratio, sqrtConst21)
-	}
 	if tick > 0 {
-		ratio = new(big.Int).Div(entities.MaxUint256, ratio)
+		return getSqrtRatioAtTickPositive(tick)
+	}
+	return getSqrtRatioAtTickNegative(tick)
+}
+
+var (
+	sqrtPositive1, _  = new(big.Int).SetString("79232123823359799118286999567", 10)
+	sqrtPositive2, _  = new(big.Int).SetString("79228162514264337593543950336", 10)
+	sqrtPositive3, _  = new(big.Int).SetString("79236085330515764027303304731", 10)
+	sqrtPositive4, _  = new(big.Int).SetString("79244008939048815603706035061", 10)
+	sqrtPositive5, _  = new(big.Int).SetString("79259858533276714757314932305", 10)
+	sqrtPositive6, _  = new(big.Int).SetString("79291567232598584799939703904", 10)
+	sqrtPositive7, _  = new(big.Int).SetString("79355022692464371645785046466", 10)
+	sqrtPositive8, _  = new(big.Int).SetString("79482085999252804386437311141", 10)
+	sqrtPositive9, _  = new(big.Int).SetString("79736823300114093921829183326", 10)
+	sqrtPositive10, _ = new(big.Int).SetString("80248749790819932309965073892", 10)
+	sqrtPositive11, _ = new(big.Int).SetString("81282483887344747381513967011", 10)
+	sqrtPositive12, _ = new(big.Int).SetString("83390072131320151908154831281", 10)
+	sqrtPositive13, _ = new(big.Int).SetString("87770609709833776024991924138", 10)
+	sqrtPositive14, _ = new(big.Int).SetString("87770609709833776024991924138", 10)
+	sqrtPositive15, _ = new(big.Int).SetString("119332217159966728226237229890", 10)
+	sqrtPositive16, _ = new(big.Int).SetString("179736315981702064433883588727", 10)
+	sqrtPositive17, _ = new(big.Int).SetString("407748233172238350107850275304", 10)
+	sqrtPositive18, _ = new(big.Int).SetString("2098478828474011932436660412517", 10)
+	sqrtPositive19, _ = new(big.Int).SetString("55581415166113811149459800483533", 10)
+	sqrtPositive20, _ = new(big.Int).SetString("38992368544603139932233054999993551", 10)
+)
+
+func getSqrtRatioAtTickPositive(tick int) (*big.Int, error) {
+	var ratio *big.Int
+	if tick&1 != 0 {
+		ratio = new(big.Int).Set(sqrtPositive1)
+	} else {
+		ratio = new(big.Int).Set(sqrtPositive2)
 	}
 
-	// back to Q96
-	if new(big.Int).Rem(ratio, Q32).Cmp(constants.Zero) > 0 {
-		return new(big.Int).Add((new(big.Int).Div(ratio, Q32)), constants.One), nil
-	} else {
-		return new(big.Int).Div(ratio, Q32), nil
+	if (tick & 2) != 0 {
+		signedShiftRight(ratio, sqrtPositive3, 96)
 	}
+	if (tick & 4) != 0 {
+		signedShiftRight(ratio, sqrtPositive4, 96)
+	}
+	if (tick & 8) != 0 {
+		signedShiftRight(ratio, sqrtPositive5, 96)
+	}
+	if (tick & 16) != 0 {
+		signedShiftRight(ratio, sqrtPositive6, 96)
+	}
+	if (tick & 32) != 0 {
+		signedShiftRight(ratio, sqrtPositive7, 96)
+	}
+	if (tick & 64) != 0 {
+		signedShiftRight(ratio, sqrtPositive8, 96)
+	}
+	if (tick & 128) != 0 {
+		signedShiftRight(ratio, sqrtPositive9, 96)
+	}
+	if (tick & 256) != 0 {
+		signedShiftRight(ratio, sqrtPositive10, 96)
+	}
+	if (tick & 512) != 0 {
+		signedShiftRight(ratio, sqrtPositive11, 96)
+	}
+	if (tick & 1024) != 0 {
+		signedShiftRight(ratio, sqrtPositive12, 96)
+	}
+	if (tick & 2048) != 0 {
+		signedShiftRight(ratio, sqrtPositive13, 96)
+	}
+	if (tick & 4096) != 0 {
+		signedShiftRight(ratio, sqrtPositive14, 96)
+	}
+	if (tick & 8192) != 0 {
+		signedShiftRight(ratio, sqrtPositive15, 96)
+	}
+	if (tick & 16384) != 0 {
+		signedShiftRight(ratio, sqrtPositive16, 96)
+	}
+	if (tick & 32768) != 0 {
+		signedShiftRight(ratio, sqrtPositive17, 96)
+	}
+	if (tick & 65536) != 0 {
+		signedShiftRight(ratio, sqrtPositive18, 96)
+	}
+	if (tick & 131072) != 0 {
+		signedShiftRight(ratio, sqrtPositive19, 96)
+	}
+	if (tick & 262144) != 0 {
+		signedShiftRight(ratio, sqrtPositive20, 96)
+	}
+
+	ratio.Rsh(ratio, 32)
+	ratio.And(ratio, Mask256)
+
+	return ratio, nil
+}
+
+var (
+	sqrtNegative1, _  = new(big.Int).SetString("18445821805675392311", 10)
+	sqrtNegative2, _  = new(big.Int).SetString("18446744073709551616", 10)
+	sqrtNegative3, _  = new(big.Int).SetString("18444899583751176498", 10)
+	sqrtNegative4, _  = new(big.Int).SetString("18443055278223354162", 10)
+	sqrtNegative5, _  = new(big.Int).SetString("18439367220385604838", 10)
+	sqrtNegative6, _  = new(big.Int).SetString("18431993317065449817", 10)
+	sqrtNegative7, _  = new(big.Int).SetString("18417254355718160513", 10)
+	sqrtNegative8, _  = new(big.Int).SetString("18387811781193591352", 10)
+	sqrtNegative9, _  = new(big.Int).SetString("18329067761203520168", 10)
+	sqrtNegative10, _ = new(big.Int).SetString("18212142134806087854", 10)
+	sqrtNegative11, _ = new(big.Int).SetString("17980523815641551639", 10)
+	sqrtNegative12, _ = new(big.Int).SetString("17526086738831147013", 10)
+	sqrtNegative13, _ = new(big.Int).SetString("16651378430235024244", 10)
+	sqrtNegative14, _ = new(big.Int).SetString("15030750278693429944", 10)
+	sqrtNegative15, _ = new(big.Int).SetString("12247334978882834399", 10)
+	sqrtNegative16, _ = new(big.Int).SetString("8131365268884726200", 10)
+	sqrtNegative17, _ = new(big.Int).SetString("3584323654723342297", 10)
+	sqrtNegative18, _ = new(big.Int).SetString("696457651847595233", 10)
+	sqrtNegative19, _ = new(big.Int).SetString("26294789957452057", 10)
+	sqrtNegative20, _ = new(big.Int).SetString("37481735321082", 10)
+)
+
+func getSqrtRatioAtTickNegative(tick int) (*big.Int, error) {
+	tick = -tick
+	var ratio *big.Int
+	if tick&1 != 0 {
+		ratio = new(big.Int).Set(sqrtNegative1)
+	} else {
+		ratio = new(big.Int).Set(sqrtNegative2)
+	}
+
+	if (tick & 2) != 0 {
+		signedShiftRight(ratio, sqrtNegative3, 64)
+	}
+	if (tick & 4) != 0 {
+		signedShiftRight(ratio, sqrtNegative4, 64)
+	}
+	if (tick & 8) != 0 {
+		signedShiftRight(ratio, sqrtNegative5, 64)
+	}
+	if (tick & 16) != 0 {
+		signedShiftRight(ratio, sqrtNegative6, 64)
+	}
+	if (tick & 32) != 0 {
+		signedShiftRight(ratio, sqrtNegative7, 64)
+	}
+	if (tick & 64) != 0 {
+		signedShiftRight(ratio, sqrtNegative8, 64)
+	}
+	if (tick & 128) != 0 {
+		signedShiftRight(ratio, sqrtNegative9, 64)
+	}
+	if (tick & 256) != 0 {
+		signedShiftRight(ratio, sqrtNegative10, 64)
+	}
+	if (tick & 512) != 0 {
+		signedShiftRight(ratio, sqrtNegative11, 64)
+	}
+	if (tick & 1024) != 0 {
+		signedShiftRight(ratio, sqrtNegative12, 64)
+	}
+	if (tick & 2048) != 0 {
+		signedShiftRight(ratio, sqrtNegative13, 64)
+	}
+	if (tick & 4096) != 0 {
+		signedShiftRight(ratio, sqrtNegative14, 64)
+	}
+	if (tick & 8192) != 0 {
+		signedShiftRight(ratio, sqrtNegative15, 64)
+	}
+	if (tick & 16384) != 0 {
+		signedShiftRight(ratio, sqrtNegative16, 64)
+	}
+	if (tick & 32768) != 0 {
+		signedShiftRight(ratio, sqrtNegative17, 64)
+	}
+	if (tick & 65536) != 0 {
+		signedShiftRight(ratio, sqrtNegative18, 64)
+	}
+	if (tick & 131072) != 0 {
+		signedShiftRight(ratio, sqrtNegative19, 64)
+	}
+	if (tick & 262144) != 0 {
+		signedShiftRight(ratio, sqrtNegative20, 64)
+	}
+
+	return ratio, nil
 }
 
 var (
@@ -147,15 +237,15 @@ var (
 )
 
 /**
- * Returns the tick corresponding to a given sqrt ratio, s.t. #getSqrtRatioAtTick(tick) <= sqrtRatioX96
- * and #getSqrtRatioAtTick(tick + 1) > sqrtRatioX96
- * @param sqrtRatioX96 the sqrt ratio as a Q64.96 for which to compute the tick
+ * Returns the tick corresponding to a given sqrt ratio, s.t. #getSqrtRatioAtTick(tick) <= sqrtRatioX64
+ * and #getSqrtRatioAtTick(tick + 1) > sqrtRatioX64
+ * @param sqrtRatioX64 the sqrt ratio as a Q64.64 for which to compute the tick
  */
-func GetTickAtSqrtRatio(sqrtRatioX96 *big.Int) (int, error) {
-	if sqrtRatioX96.Cmp(MinSqrtRatio) < 0 || sqrtRatioX96.Cmp(MaxSqrtRatio) >= 0 {
+func GetTickAtSqrtRatio(sqrtRatioX64 *big.Int) (int, error) {
+	if sqrtRatioX64.Cmp(MinSqrtRatio) < 0 || sqrtRatioX64.Cmp(MaxSqrtRatio) >= 0 {
 		return 0, ErrInvalidSqrtRatio
 	}
-	sqrtRatioX128 := new(big.Int).Lsh(sqrtRatioX96, 32)
+	sqrtRatioX128 := new(big.Int).Lsh(sqrtRatioX64, 32)
 	msb, err := MostSignificantBit(sqrtRatioX128)
 	if err != nil {
 		return 0, err
@@ -189,7 +279,7 @@ func GetTickAtSqrtRatio(sqrtRatioX96 *big.Int) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	if sqrtRatio.Cmp(sqrtRatioX96) <= 0 {
+	if sqrtRatio.Cmp(sqrtRatioX64) <= 0 {
 		return int(tickHigh), nil
 	} else {
 		return int(tickLow), nil

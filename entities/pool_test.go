@@ -28,10 +28,10 @@ func TestNewPool(t *testing.T) {
 	assert.ErrorIs(t, err, entities.ErrSameAddress, "cannot be used for the same token")
 
 	_, err = NewPool(USDC, entities.WETH9[1], constants.FeeMedium, utils.EncodeSqrtRatioX96(constants.One, constants.One), big.NewInt(0), 1, nil)
-	assert.ErrorIs(t, err, ErrInvalidSqrtRatioX96, "price must be within tick price bounds")
+	assert.ErrorIs(t, err, ErrInvalidSqrtRatioX64, "price must be within tick price bounds")
 
 	_, err = NewPool(USDC, entities.WETH9[1], constants.FeeMedium, new(big.Int).Add(utils.EncodeSqrtRatioX96(constants.One, constants.One), big.NewInt(1)), big.NewInt(0), -1, nil)
-	assert.ErrorIs(t, err, ErrInvalidSqrtRatioX96, "price must be within tick price bounds")
+	assert.ErrorIs(t, err, ErrInvalidSqrtRatioX64, "price must be within tick price bounds")
 
 	_, err = NewPool(USDC, entities.WETH9[1], constants.FeeMedium, utils.EncodeSqrtRatioX96(constants.One, constants.One), big.NewInt(0), 0, nil)
 	assert.NoError(t, err, "works with valid arguments for empty pool medium fee")
