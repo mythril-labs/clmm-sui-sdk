@@ -23,6 +23,26 @@ func TestGetSqrtRatioAtTick(t *testing.T) {
 
 	rmin, _ := GetSqrtRatioAtTick(MaxTick)
 	assert.Equal(t, rmin, MaxSqrtRatio, "returns the correct value for max tick")
+
+	// Custom test: tick#97674
+	tick, _ := GetSqrtRatioAtTick(97674)
+	sqrtRatio, _ := new(big.Int).SetString("2436562986624311242090", 10)
+	assert.Equal(t, sqrtRatio, tick, "returns the correct value")
+
+	// Custom test: tick#97675
+	tick, _ = GetSqrtRatioAtTick(97675)
+	sqrtRatio, _ = new(big.Int).SetString("2436684811728091000041", 10)
+	assert.Equal(t, sqrtRatio, tick, "returns the correct value")
+
+	// Custom test: tick#-97674
+	tick, _ = GetSqrtRatioAtTick(-97674)
+	sqrtRatio, _ = new(big.Int).SetString("139656708564048263", 10)
+	assert.Equal(t, sqrtRatio, tick, "returns the correct value")
+
+	// Custom test: tick#-97675
+	tick, _ = GetSqrtRatioAtTick(-97675)
+	sqrtRatio, _ = new(big.Int).SetString("139649726252289079", 10)
+	assert.Equal(t, sqrtRatio, tick, "returns the correct value")
 }
 
 func TestGetTickAtSqrtRatio(t *testing.T) {

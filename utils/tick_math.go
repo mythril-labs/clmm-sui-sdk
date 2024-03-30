@@ -59,7 +59,7 @@ var (
 	sqrtPositive11, _ = new(big.Int).SetString("81282483887344747381513967011", 10)
 	sqrtPositive12, _ = new(big.Int).SetString("83390072131320151908154831281", 10)
 	sqrtPositive13, _ = new(big.Int).SetString("87770609709833776024991924138", 10)
-	sqrtPositive14, _ = new(big.Int).SetString("87770609709833776024991924138", 10)
+	sqrtPositive14, _ = new(big.Int).SetString("97234110755111693312479820773", 10)
 	sqrtPositive15, _ = new(big.Int).SetString("119332217159966728226237229890", 10)
 	sqrtPositive16, _ = new(big.Int).SetString("179736315981702064433883588727", 10)
 	sqrtPositive17, _ = new(big.Int).SetString("407748233172238350107850275304", 10)
