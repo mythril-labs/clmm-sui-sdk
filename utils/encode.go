@@ -9,8 +9,8 @@ import "math/big"
  * @returns The sqrt ratio
  */
 func EncodeSqrtRatioX64(amount1 *big.Int, amount0 *big.Int) *big.Int {
-	numerator := new(big.Int).Lsh(amount1, 192)
+	numerator := new(big.Int).Lsh(amount1, 128)
 	denominator := amount0
-	ratioX192 := new(big.Int).Div(numerator, denominator)
-	return new(big.Int).Sqrt(ratioX192)
+	ratioX128 := new(big.Int).Div(numerator, denominator)
+	return new(big.Int).Sqrt(ratioX128)
 }

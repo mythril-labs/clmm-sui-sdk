@@ -3,7 +3,6 @@ package constants
 import (
 	"math/big"
 
-	"github.com/daoleno/uniswap-sdk-core/entities"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -40,8 +39,5 @@ var (
 	One         = big.NewInt(1)
 
 	// used in liquidity amount math
-	Q96  = new(big.Int).Exp(big.NewInt(2), big.NewInt(96), nil)
-	Q192 = new(big.Int).Exp(Q96, big.NewInt(2), nil)
-
-	PercentZero = entities.NewFraction(big.NewInt(0), big.NewInt(1))
+	Q64 = new(big.Int).Exp(big.NewInt(2), big.NewInt(64), nil)
 )
