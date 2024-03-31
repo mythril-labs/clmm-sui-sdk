@@ -3,7 +3,7 @@ package utils
 import (
 	"math/big"
 
-	"github.com/daoleno/uniswapv3-sdk/constants"
+	"github.com/mythril-labs/clmm-sui-sdk/constants"
 )
 
 func AddDelta(x, y *big.Int) *big.Int {

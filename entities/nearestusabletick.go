@@ -3,7 +3,7 @@ package entities
 import (
 	"math"
 
-	"github.com/daoleno/uniswapv3-sdk/utils"
+	"github.com/mythril-labs/clmm-sui-sdk/utils"
 )
 
 /**

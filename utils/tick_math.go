@@ -4,7 +4,7 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/daoleno/uniswapv3-sdk/constants"
+	"github.com/mythril-labs/clmm-sui-sdk/constants"
 )
 
 const (

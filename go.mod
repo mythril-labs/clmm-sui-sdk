@@ -1,4 +1,4 @@
-module github.com/daoleno/uniswapv3-sdk
+module github.com/mythril-labs/clmm-sui-sdk
 
 go 1.18
 

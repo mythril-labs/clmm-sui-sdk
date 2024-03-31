@@ -3,7 +3,7 @@ package utils
 import (
 	"math/big"
 
-	"github.com/daoleno/uniswapv3-sdk/constants"
+	"github.com/mythril-labs/clmm-sui-sdk/constants"
 )
 
 func MulDivRoundingUp(a, b, denominator *big.Int) *big.Int {
