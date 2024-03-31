@@ -7,7 +7,6 @@ import (
 	"github.com/daoleno/uniswap-sdk-core/entities"
 	"github.com/daoleno/uniswapv3-sdk/constants"
 	"github.com/daoleno/uniswapv3-sdk/utils"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 var (
@@ -37,10 +36,6 @@ type Pool struct {
 	Liquidity        *big.Int
 	TickCurrent      int
 	TickDataProvider TickDataProvider
-}
-
-func GetAddress(tokenA, tokenB *entities.Token, fee constants.FeeAmount, initCodeHashManualOverride string) (common.Address, error) {
-	return utils.ComputePoolAddress(constants.FactoryAddress, tokenA, tokenB, fee, initCodeHashManualOverride)
 }
 
 /**
@@ -104,7 +99,7 @@ func (p *Pool) InvolvesToken(token *entities.Token) bool {
 /**
  * Given an input amount of a token, return the computed output amount, and a pool with state updated after the trade
  * @param inputAmount The input amount for which to quote the output amount
- * @param sqrtPriceLimitX64 The Q64.96 sqrt price limit
+ * @param sqrtPriceLimitX64 The Q64.64 sqrt price limit
  * @returns The output amount and the pool with updated state
  */
 func (p *Pool) GetOutputAmount(inputAmount *entities.CurrencyAmount, sqrtPriceLimitX64 *big.Int) (*entities.CurrencyAmount, *Pool, error) {
@@ -132,7 +127,7 @@ func (p *Pool) GetOutputAmount(inputAmount *entities.CurrencyAmount, sqrtPriceLi
 /**
  * Given a desired output amount of a token, return the computed input amount and a pool with state updated after the trade
  * @param outputAmount the output amount for which to quote the input amount
- * @param sqrtPriceLimitX64 The Q64.96 sqrt price limit. If zero for one, the price cannot be less than this value after the swap. If one for zero, the price cannot be greater than this value after the swap
+ * @param sqrtPriceLimitX64 The Q64.64 sqrt price limit. If zero for one, the price cannot be less than this value after the swap. If one for zero, the price cannot be greater than this value after the swap
  * @returns The input amount and the pool with updated state
  */
 func (p *Pool) GetInputAmount(outputAmount *entities.CurrencyAmount, sqrtPriceLimitX64 *big.Int) (*entities.CurrencyAmount, *Pool, error) {
@@ -161,7 +156,7 @@ func (p *Pool) GetInputAmount(outputAmount *entities.CurrencyAmount, sqrtPriceLi
  * Executes a swap
  * @param zeroForOne Whether the amount in is token0 or token1
  * @param amountSpecified The amount of the swap, which implicitly configures the swap as exact input (positive), or exact output (negative)
- * @param sqrtPriceLimitX64 The Q64.96 sqrt price limit. If zero for one, the price cannot be less than this value after the swap. If one for zero, the price cannot be greater than this value after the swap
+ * @param sqrtPriceLimitX64 The Q64.64 sqrt price limit. If zero for one, the price cannot be less than this value after the swap. If one for zero, the price cannot be greater than this value after the swap
  * @returns amountCalculated
  * @returns sqrtRatioX64
  * @returns liquidity
