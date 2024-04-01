@@ -4,7 +4,6 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/daoleno/uniswap-sdk-core/entities"
 	"github.com/mythril-labs/clmm-sui-sdk/constants"
 )
 
@@ -13,16 +12,17 @@ var (
 	ErrLiquidityLessThanZero = errors.New("liquidity less than zero")
 	ErrInvariant             = errors.New("invariant violation")
 )
-var MaxUint128 = new(big.Int).Sub(new(big.Int).Exp(big.NewInt(2), big.NewInt(128), nil), constants.One)
+var MaxUint128, _ = new(big.Int).SetString("ffffffffffffffffffffffffffffffff", 16)
+var MaxUint256, _ = new(big.Int).SetString("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", 16)
 
 func multiplyIn256(x, y *big.Int) *big.Int {
 	product := new(big.Int).Mul(x, y)
-	return new(big.Int).And(product, entities.MaxUint256)
+	return new(big.Int).And(product, MaxUint256)
 }
 
 func addIn256(x, y *big.Int) *big.Int {
 	sum := new(big.Int).Add(x, y)
-	return new(big.Int).And(sum, entities.MaxUint256)
+	return new(big.Int).And(sum, MaxUint256)
 }
 
 func GetAmount0Delta(sqrtRatioAX64, sqrtRatioBX64, liquidity *big.Int, roundUp bool) *big.Int {

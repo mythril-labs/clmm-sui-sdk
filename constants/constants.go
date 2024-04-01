@@ -2,31 +2,21 @@ package constants
 
 import (
 	"math/big"
-
-	"github.com/ethereum/go-ethereum/common"
-)
-
-const PoolInitCodeHash = "0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54"
-
-var (
-	FactoryAddress = common.HexToAddress("0x1F98431c8aD98523631AE4a59f267346ea31F984")
-	AddressZero    = common.HexToAddress("0x0000000000000000000000000000000000000000")
 )
 
 // The default factory enabled fee amounts, denominated in hundredths of bips.
-type FeeAmount uint64
 
 const (
-	FeeLowest FeeAmount = 100
-	FeeLow    FeeAmount = 500
-	FeeMedium FeeAmount = 2500
-	FeeHigh   FeeAmount = 10000
+	FeeLowest uint64 = 100
+	FeeLow    uint64 = 500
+	FeeMedium uint64 = 2500
+	FeeHigh   uint64 = 10000
 
-	FeeMax FeeAmount = 1000000
+	FeeMax uint64 = 1000000
 )
 
 // The default factory tick spacings by fee amount.
-var TickSpacings = map[FeeAmount]int{
+var TickSpacings = map[uint64]int{
 	FeeLowest: 1,
 	FeeLow:    10,
 	FeeMedium: 60,

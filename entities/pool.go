@@ -4,7 +4,6 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/daoleno/uniswap-sdk-core/entities"
 	"github.com/mythril-labs/clmm-sui-sdk/constants"
 	"github.com/mythril-labs/clmm-sui-sdk/utils"
 )
@@ -29,9 +28,9 @@ type StepComputations struct {
 
 // Represents a V3 pool
 type Pool struct {
-	Token0           *entities.Token
-	Token1           *entities.Token
-	Fee              constants.FeeAmount
+	Token0           *Token
+	Token1           *Token
+	Fee              uint64
 	TickSpacing      int
 	SqrtRatioX64     *big.Int
 	Liquidity        *big.Int
@@ -49,7 +48,7 @@ type Pool struct {
  * @param tickCurrent The current tick of the pool
  * @param ticks The current state of the pool ticks or a data provider that can return tick data
  */
-func NewPool(tokenA, tokenB *entities.Token, fee constants.FeeAmount, tickSpacing int, sqrtRatioX64 *big.Int, liquidity *big.Int, tickCurrent int, ticks TickDataProvider) (*Pool, error) {
+func NewPool(tokenA, tokenB *Token, fee uint64, tickSpacing int, sqrtRatioX64 *big.Int, liquidity *big.Int, tickCurrent int, ticks TickDataProvider) (*Pool, error) {
 	if fee >= constants.FeeMax {
 		return nil, ErrFeeTooHigh
 	}
@@ -66,20 +65,10 @@ func NewPool(tokenA, tokenB *entities.Token, fee constants.FeeAmount, tickSpacin
 	if sqrtRatioX64.Cmp(tickCurrentSqrtRatioX64) < 0 || sqrtRatioX64.Cmp(nextTickSqrtRatioX64) > 0 {
 		return nil, ErrInvalidSqrtRatioX64
 	}
-	token0 := tokenA
-	token1 := tokenB
-	isSorted, err := tokenA.SortsBefore(tokenB)
-	if err != nil {
-		return nil, err
-	}
-	if !isSorted {
-		token0 = tokenB
-		token1 = tokenA
-	}
 
 	return &Pool{
-		Token0:           token0,
-		Token1:           token1,
+		Token0:           tokenA,
+		Token1:           tokenB,
 		Fee:              fee,
 		TickSpacing:      tickSpacing,
 		SqrtRatioX64:     sqrtRatioX64,
@@ -94,7 +83,7 @@ func NewPool(tokenA, tokenB *entities.Token, fee constants.FeeAmount, tickSpacin
  * @param token The token to check
  * @returns True if token is either token0 or token
  */
-func (p *Pool) InvolvesToken(token *entities.Token) bool {
+func (p *Pool) InvolvesToken(token *Token) bool {
 	return p.Token0.Equal(token) || p.Token1.Equal(token)
 }
 
@@ -104,7 +93,7 @@ func (p *Pool) InvolvesToken(token *entities.Token) bool {
  * @param sqrtPriceLimitX64 The Q64.64 sqrt price limit
  * @returns The output amount and the pool with updated state
  */
-func (p *Pool) GetOutputAmount(inputAmount *entities.CurrencyAmount, sqrtPriceLimitX64 *big.Int) (*entities.CurrencyAmount, *Pool, error) {
+func (p *Pool) GetOutputAmount(inputAmount *CurrencyAmount, sqrtPriceLimitX64 *big.Int) (*CurrencyAmount, *Pool, error) {
 	if !(inputAmount.Currency.IsToken() && p.InvolvesToken(inputAmount.Currency.Wrapped())) {
 		return nil, nil, ErrTokenNotInvolved
 	}
@@ -113,7 +102,7 @@ func (p *Pool) GetOutputAmount(inputAmount *entities.CurrencyAmount, sqrtPriceLi
 	if err != nil {
 		return nil, nil, err
 	}
-	var outputToken *entities.Token
+	var outputToken *Token
 	if zeroForOne {
 		outputToken = p.Token1
 	} else {
@@ -123,7 +112,7 @@ func (p *Pool) GetOutputAmount(inputAmount *entities.CurrencyAmount, sqrtPriceLi
 	if err != nil {
 		return nil, nil, err
 	}
-	return entities.FromRawAmount(outputToken, new(big.Int).Mul(outputAmount, constants.NegativeOne)), pool, nil
+	return FromRawAmount(outputToken, new(big.Int).Mul(outputAmount, constants.NegativeOne)), pool, nil
 }
 
 /**
@@ -132,7 +121,7 @@ func (p *Pool) GetOutputAmount(inputAmount *entities.CurrencyAmount, sqrtPriceLi
  * @param sqrtPriceLimitX64 The Q64.64 sqrt price limit. If zero for one, the price cannot be less than this value after the swap. If one for zero, the price cannot be greater than this value after the swap
  * @returns The input amount and the pool with updated state
  */
-func (p *Pool) GetInputAmount(outputAmount *entities.CurrencyAmount, sqrtPriceLimitX64 *big.Int) (*entities.CurrencyAmount, *Pool, error) {
+func (p *Pool) GetInputAmount(outputAmount *CurrencyAmount, sqrtPriceLimitX64 *big.Int) (*CurrencyAmount, *Pool, error) {
 	if !(outputAmount.Currency.IsToken() && p.InvolvesToken(outputAmount.Currency.Wrapped())) {
 		return nil, nil, ErrTokenNotInvolved
 	}
@@ -141,7 +130,7 @@ func (p *Pool) GetInputAmount(outputAmount *entities.CurrencyAmount, sqrtPriceLi
 	if err != nil {
 		return nil, nil, err
 	}
-	var inputToken *entities.Token
+	var inputToken *Token
 	if zeroForOne {
 		inputToken = p.Token0
 	} else {
@@ -151,7 +140,7 @@ func (p *Pool) GetInputAmount(outputAmount *entities.CurrencyAmount, sqrtPriceLi
 	if err != nil {
 		return nil, nil, err
 	}
-	return entities.FromRawAmount(inputToken, inputAmount), pool, nil
+	return FromRawAmount(inputToken, inputAmount), pool, nil
 }
 
 /**

@@ -8,7 +8,7 @@ import (
 
 var MaxFee = new(big.Int).Exp(big.NewInt(10), big.NewInt(6), nil)
 
-func ComputeSwapStep(sqrtRatioCurrentX64, sqrtRatioTargetX64, liquidity, amountRemaining *big.Int, feePips constants.FeeAmount) (sqrtRatioNextX64, amountIn, amountOut, feeAmount *big.Int, err error) {
+func ComputeSwapStep(sqrtRatioCurrentX64, sqrtRatioTargetX64, liquidity, amountRemaining *big.Int, feePips uint64) (sqrtRatioNextX64, amountIn, amountOut, feeAmount *big.Int, err error) {
 	zeroForOne := sqrtRatioCurrentX64.Cmp(sqrtRatioTargetX64) >= 0
 	exactIn := amountRemaining.Cmp(constants.Zero) >= 0
 
