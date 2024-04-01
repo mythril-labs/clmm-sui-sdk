@@ -32,6 +32,7 @@ type Pool struct {
 	Token0           *entities.Token
 	Token1           *entities.Token
 	Fee              constants.FeeAmount
+	TickSpacing      int
 	SqrtRatioX64     *big.Int
 	Liquidity        *big.Int
 	TickCurrent      int
@@ -48,7 +49,7 @@ type Pool struct {
  * @param tickCurrent The current tick of the pool
  * @param ticks The current state of the pool ticks or a data provider that can return tick data
  */
-func NewPool(tokenA, tokenB *entities.Token, fee constants.FeeAmount, sqrtRatioX64 *big.Int, liquidity *big.Int, tickCurrent int, ticks TickDataProvider) (*Pool, error) {
+func NewPool(tokenA, tokenB *entities.Token, fee constants.FeeAmount, tickSpacing int, sqrtRatioX64 *big.Int, liquidity *big.Int, tickCurrent int, ticks TickDataProvider) (*Pool, error) {
 	if fee >= constants.FeeMax {
 		return nil, ErrFeeTooHigh
 	}
@@ -80,6 +81,7 @@ func NewPool(tokenA, tokenB *entities.Token, fee constants.FeeAmount, sqrtRatioX
 		Token0:           token0,
 		Token1:           token1,
 		Fee:              fee,
+		TickSpacing:      tickSpacing,
 		SqrtRatioX64:     sqrtRatioX64,
 		Liquidity:        liquidity,
 		TickCurrent:      tickCurrent,
@@ -117,7 +119,7 @@ func (p *Pool) GetOutputAmount(inputAmount *entities.CurrencyAmount, sqrtPriceLi
 	} else {
 		outputToken = p.Token0
 	}
-	pool, err := NewPool(p.Token0, p.Token1, p.Fee, sqrtRatioX64, liquidity, tickCurrent, p.TickDataProvider)
+	pool, err := NewPool(p.Token0, p.Token1, p.Fee, p.TickSpacing, sqrtRatioX64, liquidity, tickCurrent, p.TickDataProvider)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -145,7 +147,7 @@ func (p *Pool) GetInputAmount(outputAmount *entities.CurrencyAmount, sqrtPriceLi
 	} else {
 		inputToken = p.Token1
 	}
-	pool, err := NewPool(p.Token0, p.Token1, p.Fee, sqrtRatioX64, liquidity, tickCurrent, p.TickDataProvider)
+	pool, err := NewPool(p.Token0, p.Token1, p.Fee, p.TickSpacing, sqrtRatioX64, liquidity, tickCurrent, p.TickDataProvider)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -213,7 +215,7 @@ func (p *Pool) swap(zeroForOne bool, amountSpecified, sqrtPriceLimitX64 *big.Int
 		// because each iteration of the while loop rounds, we can't optimize this code (relative to the smart contract)
 		// by simply traversing to the next available tick, we instead need to exactly replicate
 		// tickBitmap.nextInitializedTickWithinOneWord
-		step.tickNext, step.initialized = p.TickDataProvider.NextInitializedTickWithinOneWord(state.tick, zeroForOne, p.tickSpacing())
+		step.tickNext, step.initialized = p.TickDataProvider.NextInitializedTickWithinOneWord(state.tick, zeroForOne, p.TickSpacing)
 
 		if step.tickNext < utils.MinTick {
 			step.tickNext = utils.MinTick
@@ -279,8 +281,4 @@ func (p *Pool) swap(zeroForOne bool, amountSpecified, sqrtPriceLimitX64 *big.Int
 		}
 	}
 	return state.amountCalculated, state.sqrtPriceX64, state.liquidity, state.tick, nil
-}
-
-func (p *Pool) tickSpacing() int {
-	return constants.TickSpacings[p.Fee]
 }
