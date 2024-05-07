@@ -162,21 +162,21 @@ func (p *Pool) swap(zeroForOne bool, amountSpecified, sqrtPriceLimitX64 *big.Int
 		}
 	}
 
-	// if zeroForOne {
-	// 	if sqrtPriceLimitX64.Cmp(utils.MinSqrtRatio) <= 0 {
-	// 		return nil, nil, nil, 0, ErrSqrtPriceLimitX64TooLow
-	// 	}
-	// 	if sqrtPriceLimitX64.Cmp(p.SqrtRatioX64) >= 0 {
-	// 		return nil, nil, nil, 0, ErrSqrtPriceLimitX64TooHigh
-	// 	}
-	// } else {
-	// 	if sqrtPriceLimitX64.Cmp(utils.MaxSqrtRatio) >= 0 {
-	// 		return nil, nil, nil, 0, ErrSqrtPriceLimitX64TooHigh
-	// 	}
-	// 	if sqrtPriceLimitX64.Cmp(p.SqrtRatioX64) <= 0 {
-	// 		return nil, nil, nil, 0, ErrSqrtPriceLimitX64TooLow
-	// 	}
-	// }
+	if zeroForOne {
+		if sqrtPriceLimitX64.Cmp(utils.MinSqrtRatio) < 0 {
+			return nil, nil, nil, 0, ErrSqrtPriceLimitX64TooLow
+		}
+		if sqrtPriceLimitX64.Cmp(p.SqrtRatioX64) >= 0 {
+			return nil, nil, nil, 0, ErrSqrtPriceLimitX64TooHigh
+		}
+	} else {
+		if sqrtPriceLimitX64.Cmp(utils.MaxSqrtRatio) > 0 {
+			return nil, nil, nil, 0, ErrSqrtPriceLimitX64TooHigh
+		}
+		if sqrtPriceLimitX64.Cmp(p.SqrtRatioX64) <= 0 {
+			return nil, nil, nil, 0, ErrSqrtPriceLimitX64TooLow
+		}
+	}
 
 	exactInput := amountSpecified.Cmp(constants.Zero) >= 0
 
