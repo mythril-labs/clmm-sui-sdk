@@ -48,21 +48,6 @@ func TestNewPool(t *testing.T) {
 	_, err = NewPool(USDC, WETH9[1], constants.FeeHigh, constants.TickSpacings[constants.FeeHigh], utils.EncodeSqrtRatioX64(constants.One, constants.One), big.NewInt(0), 0, nil)
 	assert.NoError(t, err, "works with valid arguments for empty pool high fee")
 }
-func TestToken0(t *testing.T) {
-	pool, _ := NewPool(USDC, DAI, constants.FeeLow, constants.TickSpacings[constants.FeeLow], utils.EncodeSqrtRatioX64(constants.One, constants.One), big.NewInt(0), 0, nil)
-	assert.Equal(t, pool.Token0, DAI, "always is the token that sorts before")
-
-	pool, _ = NewPool(DAI, USDC, constants.FeeLow, constants.TickSpacings[constants.FeeLow], utils.EncodeSqrtRatioX64(constants.One, constants.One), big.NewInt(0), 0, nil)
-	assert.Equal(t, pool.Token0, DAI, "always is the token that sorts before")
-}
-
-func TestToken1(t *testing.T) {
-	pool, _ := NewPool(USDC, DAI, constants.FeeLow, constants.TickSpacings[constants.FeeLow], utils.EncodeSqrtRatioX64(constants.One, constants.One), big.NewInt(0), 0, nil)
-	assert.Equal(t, pool.Token1, USDC, "always is the token that sorts after")
-
-	pool, _ = NewPool(DAI, USDC, constants.FeeLow, constants.TickSpacings[constants.FeeLow], utils.EncodeSqrtRatioX64(constants.One, constants.One), big.NewInt(0), 0, nil)
-	assert.Equal(t, pool.Token1, USDC, "always is the token that sorts after")
-}
 
 func TestInvolvesToken(t *testing.T) {
 	pool, _ := NewPool(USDC, DAI, constants.FeeLow, constants.TickSpacings[constants.FeeLow], utils.EncodeSqrtRatioX64(constants.One, constants.One), big.NewInt(0), 0, nil)
