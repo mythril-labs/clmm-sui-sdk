@@ -86,7 +86,7 @@ func TestGetOutputAmount(t *testing.T) {
 
 	// USDC -> DAI
 	inputAmount := FromRawAmount(USDC, big.NewInt(100))
-	outputAmount, _, err := pool.GetOutputAmount(inputAmount, nil)
+	outputAmount, _, _, err := pool.GetOutputAmount(inputAmount, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -95,7 +95,7 @@ func TestGetOutputAmount(t *testing.T) {
 
 	// DAI -> USDC
 	inputAmount = FromRawAmount(DAI, big.NewInt(100))
-	outputAmount, _, err = pool.GetOutputAmount(inputAmount, nil)
+	outputAmount, _, _, err = pool.GetOutputAmount(inputAmount, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
